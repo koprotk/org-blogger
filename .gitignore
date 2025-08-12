@@ -1,2 +1,4 @@
 /config/client_secret.json
 /config/token.json
+/.DS_Store
+/scripts/.DS_Store
