@@ -1,0 +1,102 @@
+#+title: Displaylink Fedora Install
+#+author: Daniel Muñoz
+#+TAGS: fedora, linux, displaylink, terminal, bash
+#+latex_header: \usepackage{listings}
+
+* Prerequest
++ pesign
++ openssl
++ kernel-devel
++ mokutil
++ keyutils
++ fedora-packager
++ rpmdevtools
++ gcc
++ glibc-devel.i686
++ glibc-devel
++ kernel-modules-extra
+
+* Sources
++ https://github.com/displaylink-rpm/displaylink-rpm
++ https://access.redhat.com/documentation/es-es/red_hat_enterprise_linux/9/html/managing_monitoring_and_updating_the_kernel/signing-a-kernel-and-modules-for-secure-boot_managing-monitoring-and-updating-the-kernel#doc-wrapper
+
+
+* Install displaylink driver.
+1. Clone project
+   #+begin_src bash
+    git clone https://github.com/displaylink-rpm/displaylink-rpm.git
+   #+end_src
+2. <<2>> Build project and create rpm install file
+   #+begin_src bash
+    make srpm
+   #+end_src
+if doesn't work you can try to download the module from github repo
+#+begin_src bash
+make gituhub-release
+#+end_src
+3. Enter to RPM folder
+   #+begin_src bash
+   cd x86_64
+   #+end_src
+4. Install the RPM file
+   #+begin_src bash
+   sudo dnf install display*
+   #+end_src
+5. After this the install even if them was successfully the =evdi= module wont be loaded because it needs to be signed to pass the UEFI-security.
+
+* Signing the `evdi' module
+1. First we create the signature files
+    #+attr_latex: :options breaklines=true
+    #+begin_src bash
+sudo efikeygen --dbdir /etc/pki/pesign --self-sign --module --common-name 'CN=Displaylink' --nickname 'Custom Secure Boot key'
+    #+end_src
+2. Now we will export your certified key, use a folder you'll remember.
+    #+begin_src bash
+sudo certutil -d /etc/pki/pesign -n 'Custom Secure Boot key' -Lr > sb_cert.cer
+    #+end_src
+3. Import your public key into de MOK list:
+   #+begin_src bash
+   sudo mokutil --import sb_cert.cer
+   #+end_src
+4. <<4>> Enter a password you will remember, you needed in the next steps
+5. reboot the machine
+6. Will load the MOK util before the OS
+7. Select 'Enroll MOK'
+8. Enter on 'Continue'
+9. Enter the password in the step [[4]].
+10. Enter on 'Reboot'
+11. Extract the key from NSS database as PKC#12 file:
+     #+begin_src bash
+    sudo pk12util -o sb_cert.p12 -n 'Custom Secure Boot key' -d /etc/pki/pesign
+    #+end_src
+12. enter a new password I recommend use the same password on [[4]].
+13. export the unencrypted private key
+     #+begin_src bash
+    sudo openssl pkcs12 -in sb_cert.p12 -out sb_cert.priv -nocerts -noenc
+    #+end_src
+14. <<14>> Prepare the module to be signed
+     #+begin_src bash
+    sudo modinfo -n evdi /lib/modules/$(uname -r)/extra/evdi.ko.xz
+    sudo unxz $(modinfo -n evdi)
+    #+end_src
+15. Go to directory where you save your keys and sign the module
+     #+begin_src bash
+    sudo /usr/src/kernels/$(uname -r)/scripts/sign-file sha256 sb_cert.priv sb_cert.cer /lib/modules/$(uname -r)/extra/evdi.ko
+    #+end_src
+16. Restore the module to be used
+     #+begin_src bash
+    sudo xz -f /lib/modules/$(uname -r)/extra/evdi.ko
+    #+end_src
+17. Now the module must be ready for used.
+
+* Upgrading kernel
+If the kernel were upgraded you need to repeat the previous steps starting from [[14]].
+
+* Upgrading the displaylink apps.
+If the displaylink were updated, you need to updated in your system, to do this  first you need to upgrade the displaylink project in your local machine:
+1. Go to your displaylink directory and in your terminal code:
+   #+begin_src bash
+        git pull origin master
+   #+end_src
+2. Now repeat the steps since [[2]] to create the rpm package.
+3. After install it you need to sign the =evdi= module as a secure module, to do that, you need to follow the steps since [[14]].
