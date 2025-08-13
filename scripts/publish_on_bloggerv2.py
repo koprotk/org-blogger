@@ -1,7 +1,7 @@
 import os
 import io
 import sys
-import subprocess  # Módulo para ejecutar comandos del sistema
+import subprocess
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -32,14 +32,12 @@ def get_credentials():
     return creds
 
 
-def read_and_convert_org_file(org_file_path):
-    """
-    Exporta un archivo .org a .html usando Emacs y luego lee los metadatos.
-    """
+def export_and_read_files(org_file_path):
+    """Exporta un archivo .org a .html con Emacs y lee los metadatos y el contenido."""
     html_file_path = org_file_path.replace('.org', '.html')
 
     try:
-        # --- NUEVA LÓGICA: Ejecutar Emacs para exportar el archivo ---
+        # 1. Exporta el archivo .org a .html con Emacs
         emacs_command = [
             'emacs',
             '--batch',
@@ -51,7 +49,7 @@ def read_and_convert_org_file(org_file_path):
         subprocess.run(emacs_command, check=True, capture_output=True, text=True)
         print("Exportación de Emacs completada.")
 
-        # Leer los metadatos del archivo .org original con orgparse
+        # 2. Lee los metadatos y el contenido
         org_document = load(org_file_path)
         post_title = org_document.get_file_property("title")
         tags_string = org_document.get_file_property("tags")
@@ -61,19 +59,12 @@ def read_and_convert_org_file(org_file_path):
         else:
             post_labels = []
 
-        # Leer el contenido HTML generado por Emacs
         with io.open(html_file_path, 'r', encoding='utf-8') as f:
             post_content_html = f.read()
 
         return post_title, post_content_html, post_labels
-    except FileNotFoundError:
-        print("Error: No se encontró el comando 'emacs' o los archivos.")
-        return None, None, None
-    except subprocess.CalledProcessError as e:
-        print(f"Error al ejecutar Emacs: {e.stderr}")
-        return None, None, None
     except Exception as e:
-        print(f"Error al procesar el archivo Org-mode: {e}")
+        print(f"Ha ocurrido un error durante la exportación o lectura de archivos: {e}")
         return None, None, None
 
 
@@ -92,8 +83,10 @@ def create_blogger_post(blog_id, title, content, labels):
         response = service.posts().insert(blogId=blog_id, body=post_body, isDraft=False).execute()
         print(f"Post creado exitosamente. Título: {response['title']}")
         print(f"URL del post: {response['url']}")
+        return True
     except HttpError as error:
         print(f"Ha ocurrido un error al crear el post: {error}")
+        return False
 
 
 if __name__ == '__main__':
@@ -102,15 +95,35 @@ if __name__ == '__main__':
         sys.exit(1)
 
     org_file_name = sys.argv[1]
-    org_file_path = os.path.join('posts_org', org_file_name)
+    drafts_dir = 'drafts'
+    posts_dir = 'posts'
+
+    org_file_path = os.path.join(drafts_dir, org_file_name)
     html_file_path = org_file_path.replace('.org', '.html')
 
-    post_title, post_content, post_labels = read_and_convert_org_file(org_file_path)
+    if not os.path.exists(org_file_path):
+        print(f"Error: El archivo '{org_file_path}' no se encontró.")
+        sys.exit(1)
+
+    if os.path.isdir(org_file_path):
+        print(f"Error: '{org_file_path}' es una carpeta, se esperaba un archivo.")
+        sys.exit(1)
+
+    post_title, post_content, post_labels = export_and_read_files(org_file_path)
 
     if post_title and post_content:
         success = create_blogger_post(BLOG_ID, post_title, post_content, post_labels)
 
-        # --- NUEVA LÓGICA: Elimina el archivo solo si la publicación fue exitosa ---
-        if success and os.path.exists(html_file_path):
+        if success:
+            posted_file_path = os.path.join(posts_dir, org_file_name)
+
+            try:
+                # Mueve el archivo de 'drafts' a 'posts'
+                os.rename(org_file_path, posted_file_path)
+                print(f"Archivo '{org_file_name}' movido de 'drafts' a 'posts'.")
+            except OSError as e:
+                print(f"Error al mover/renombrar el archivo: {e}")
+
+        if os.path.exists(html_file_path):
             os.remove(html_file_path)
             print(f"Archivo temporal '{html_file_path}' eliminado.")
