@@ -1,5 +1,5 @@
 # myBlog
-My blog project, consist in the creation of my own post on org mode and then publish it with a small script in python, the title, and the tags are managed automatically by the script through the package `orgparse`. The export from Org to Html is made by Emacs itself. The process is completely unpainful.
+`MyBlog` allows to create blog post as org files and then publish it on `blogger` executing a small script in `python`. The title, and the tags are managed automatically by the script through the package `orgparse` (requirement). The export from `Org` to `HTML` is made by Emacs itself (C-c C-e). All the process is completely unpainful and even you not need to touch your browser to publish your post, cool eh!?.
 
 
 ## First
