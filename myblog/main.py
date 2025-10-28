@@ -9,12 +9,8 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from orgparse import load
 
-
 # Define los alcances (scopes) de la API
 SCOPES = ['https://www.googleapis.com/auth/blogger']
-# ID de tu blog
-BLOG_ID = '4324169104029630098'
-
 
 def get_credentials(cred_dir):
     """Obtiene y refresca las credenciales de la API."""
@@ -33,6 +29,19 @@ def get_credentials(cred_dir):
         with open(token_dir, 'w') as token:
             token.write(creds.to_json())
     return creds
+
+def get_my_blog_id(cred_dir):
+    """Obtiene el ID del blog del usuario autenticado."""
+    creds = get_credentials(cred_dir)  
+    service = build('blogger', 'v3', credentials=creds)
+    blogs = service.blogs().listByUser(userId='self').execute()
+    if 'items' in blogs and blogs['items']:
+        blog_id = blogs['items'][0]['id']
+        print(f"Your blog ID is: {blog_id}")
+        return blog_id
+    else:
+        print("No blogs found for this user.")
+        return None
 
 
 def export_and_read_files(org_file_path):
@@ -116,6 +125,7 @@ def main():
     post_title, post_content, post_labels = export_and_read_files(org_file_path)
 
     if post_title and post_content:
+        BLOG_ID = get_my_blog_id(cred_dir)
         success = create_blogger_post(BLOG_ID, post_title, post_content, post_labels, cred_dir)
 
         if success:
