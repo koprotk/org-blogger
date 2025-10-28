@@ -15,7 +15,7 @@ When you are sure to the post is ready to be publish run it.
 How to run it? On a terminal run:
 
 #+begin_src shell
-python3 scripts/publish_on_bloggerv2.py myorgfile.org
+poetry run publish-blog myorgfile.org
 #+end_src
 
 And that's it.
