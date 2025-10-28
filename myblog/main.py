@@ -9,25 +9,28 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from orgparse import load
 
+
 # Define los alcances (scopes) de la API
 SCOPES = ['https://www.googleapis.com/auth/blogger']
 # ID de tu blog
 BLOG_ID = '4324169104029630098'
 
 
-def get_credentials():
+def get_credentials(cred_dir):
     """Obtiene y refresca las credenciales de la API."""
     creds = None
-    if os.path.exists('config/token.json'):
-        creds = Credentials.from_authorized_user_file('config/token.json', SCOPES)
+    token_dir = os.path.join(cred_dir, 'token.json')
+    secret_dir = os.path.join(cred_dir, 'client_secret.json')
+    if os.path.exists(token_dir):
+        creds = Credentials.from_authorized_user_file(token_dir, SCOPES)
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
-                'config/client_secret.json', SCOPES)
+                secret_dir, SCOPES)
             creds = flow.run_local_server(port=0)
-        with open('config/token.json', 'w') as token:
+        with open(token_dir, 'w') as token:
             token.write(creds.to_json())
     return creds
 
@@ -68,9 +71,9 @@ def export_and_read_files(org_file_path):
         return None, None, None
 
 
-def create_blogger_post(blog_id, title, content, labels):
+def create_blogger_post(blog_id, title, content, labels, cred_dir):
     """Crea y publica un post en Blogger."""
-    creds = get_credentials()
+    creds = get_credentials(cred_dir)
     try:
         service = build('blogger', 'v3', credentials=creds)
         post_body = {
@@ -88,15 +91,16 @@ def create_blogger_post(blog_id, title, content, labels):
         print(f"Ha ocurrido un error al crear el post: {error}")
         return False
 
-
-if __name__ == '__main__':
+def main():
     if len(sys.argv) < 2:
         print("Uso: python publicar_en_blogger.py <nombre_del_archivo.org>")
         sys.exit(1)
 
     org_file_name = sys.argv[1]
-    drafts_dir = 'drafts'
-    posts_dir = 'posts'
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    drafts_dir = os.path.join(base_dir, "..", 'drafts')
+    posts_dir = os.path.join(base_dir, "..",  'posts')
+    cred_dir = os.path.join(base_dir, "..", 'config')
 
     org_file_path = os.path.join(drafts_dir, org_file_name)
     html_file_path = org_file_path.replace('.org', '.html')
@@ -112,7 +116,7 @@ if __name__ == '__main__':
     post_title, post_content, post_labels = export_and_read_files(org_file_path)
 
     if post_title and post_content:
-        success = create_blogger_post(BLOG_ID, post_title, post_content, post_labels)
+        success = create_blogger_post(BLOG_ID, post_title, post_content, post_labels, cred_dir)
 
         if success:
             posted_file_path = os.path.join(posts_dir, org_file_name)
@@ -127,3 +131,7 @@ if __name__ == '__main__':
         if os.path.exists(html_file_path):
             os.remove(html_file_path)
             print(f"Archivo temporal '{html_file_path}' eliminado.")
+
+if __name__ == '__main__':
+    main()
+    

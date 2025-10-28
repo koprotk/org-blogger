@@ -2,3 +2,5 @@
 /config/token.json
 /.DS_Store
 /scripts/.DS_Store
+/myblog/__pycache__/
+/pyrightconfig.json
