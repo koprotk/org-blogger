@@ -106,10 +106,10 @@ def main():
         sys.exit(1)
 
     org_file_name = sys.argv[1]
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    drafts_dir = os.path.join(base_dir, "..", 'drafts')
-    posts_dir = os.path.join(base_dir, "..",  'posts')
-    cred_dir = os.path.join(base_dir, "..", 'config')
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    drafts_dir = os.path.join(base_dir, 'drafts')
+    posts_dir = os.path.join(base_dir, 'posts')
+    cred_dir = os.path.join(base_dir, 'config')
 
     org_file_path = os.path.join(drafts_dir, org_file_name)
     html_file_path = org_file_path.replace('.org', '.html')
