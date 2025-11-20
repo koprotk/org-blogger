@@ -12,8 +12,9 @@
 1. Write your post on a org file on the ~draft~ folder.
 2. Put your google credential file (a ~json~ file that google provide it) on the ~config~ folder (you need to create it) name it as ~client_secret.json~.
 3. When you are sure to the post is ready to be publish run it.
-4. How to run it? On a terminal run:
+4. How to run it? On a terminal run (or an async shell command with key-shortcut  ~M-&~):
 #+begin_src shell
+poetry install <---- only if your firstime running the project
 poetry run publish-blog myorgfile.org
 #+end_src
 
