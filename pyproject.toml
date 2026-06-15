@@ -5,7 +5,7 @@ description = "Project that allow to post it on your blog blogger from org files
 authors = [
     {name = "Daniel Muñoz",email = "demunoz2@uc.cl"}
 ]
-readme = "README.org"
+readme = {file = "README.org", content-type = "text/plain"}
 requires-python = ">=3.11"
 dependencies = [
     "orgparse (>=0.4.20250520,<0.5.0)",
