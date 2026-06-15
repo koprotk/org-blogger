@@ -1,27 +1,56 @@
 #+AUTHOR: Daniel Muñoz
 #+TITLE: myBlog README
 
-~MyBlog~ allows to create blog post as org files and then publish it on ~blogger~ executing a small script in ~python~. The title, and the tags are managed automatically by the script through the package ~orgparse~ (requirement). The export from ~Org~ to ~HTML~ is made by Emacs itself (C-c C-e). All the process is completely unpainful and even you not need to touch your browser to publish your post, cool eh!?.
+~MyBlog~ allows to create blog post as org files and then publish it on ~blogger~ executing a small script in ~python~. The title, and the tags are managed automatically by the script through the project metadata.
 
 * Requirements
-+ Python
-+ Poetry
-+ Emacs
-  
-* How to use it
-1. Write your post on a org file on the ~draft~ folder.
-2. Put your google credential file (a ~json~ file that google provide it) on the ~config~ folder (you need to create it) name it as ~client_secret.json~.
-3. When you are sure to the post is ready to be publish run it.
-4. How to run it? On a terminal run (or an async shell command with key-shortcut  ~M-&~):
++ Python >=3.11
++ uv (https://docs.astral.sh/uv/getting-started/)
++ Emacs (optional, for editing org files)
+
+* Installation
+
+** Install uv
 #+begin_src shell
-poetry install <---- only if your firstime running the project
-poetry run publish-blog myorgfile.org
+curl -LsSf https://astral.sh/uv/install.sh | sh
 #+end_src
 
-And that's it.
+** Clone and setup the project
+#+begin_src shell
+git clone https://github.com/koprotk/myBlog.git
+cd myBlog
+uv venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+uv sync
+#+end_src
+
+* How to use it
+1. Write your post on an org file in the ~drafts~ folder.
+2. Put your Google credential file (a ~json~ file provided by Google) in the ~config~ folder (create it if it doesn't exist) and name it ~client_secret.json~.
+3. When you're ready to publish, run:
+
+#+begin_src shell
+publish-blog drafts/myorgfile.org
+#+end_src
+
+That's it! Your post will be published to Blogger.
 
 * Tips and tricks
 ** Front image
-If you wanna a front image on your post, you can link it as image (should need image extension) in this form: ~[ [ image url ] ]~ (without spaces) but if you have a web link to the image that doesn't have image extension on the url you need to put it as HTML tag.
+If you want a front image for your post, link it as an image (must have an image extension) in this format: ~[[image url]]~ (without spaces). If you have a web link to an image that doesn't work directly, you can use a shortened URL or host it externally.
+
 ** Tags
-The script takes the tags from your org file on ~#+TAGS: tag1 tag2 tag3~ use it. Are many positive arguments to use it, but here is the good one: *if don't use tags on your org file the script could fail.*
+The script extracts tags from your org file using ~#+TAGS: tag1 tag2 tag3~. If you don't use tags in your org file, the script will use the project name as a default tag.
+
+** Development
+To run the project in editable mode (for development):
+#+begin_src shell
+uv sync
+source .venv/bin/activate
+publish-blog drafts/myorgfile.org
+#+end_src
+
+To deactivate the virtual environment:
+#+begin_src shell
+deactivate
+#+end_src
