@@ -30,7 +30,7 @@ uv sync
 3. When you're ready to publish, run:
 
 #+begin_src shell
-publish-blog drafts/myorgfile.org
+publish-blog myDraftOrgfile.org
 #+end_src
 
 That's it! Your post will be published to Blogger.
