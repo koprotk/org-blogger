@@ -1,5 +1,6 @@
 import os
 import io
+import glob
 import sys
 import subprocess
 from google.auth.transport.requests import Request
@@ -12,11 +13,22 @@ from orgparse import load
 # Define los alcances (scopes) de la API
 SCOPES = ['https://www.googleapis.com/auth/blogger']
 
+def find_secret_file(cred_dir):
+    """Busca el archivo de credenciales de Google (~client_secret*.json~)."""
+    matches = glob.glob(os.path.join(cred_dir, 'client_secret*.json'))
+    if not matches:
+        raise FileNotFoundError(
+            f"No se encontró un archivo 'client_secret*.json' en '{cred_dir}'."
+        )
+    if len(matches) > 1:
+        print(f"Aviso: se encontraron varios archivos 'client_secret*.json', usando '{matches[0]}'.")
+    return matches[0]
+
 def get_credentials(cred_dir):
     """Obtiene y refresca las credenciales de la API."""
     creds = None
     token_dir = os.path.join(cred_dir, 'token.json')
-    secret_dir = os.path.join(cred_dir, 'client_secret.json')
+    secret_dir = find_secret_file(cred_dir)
     if os.path.exists(token_dir):
         creds = Credentials.from_authorized_user_file(token_dir, SCOPES)
     if not creds or not creds.valid:
@@ -120,6 +132,15 @@ def main():
 
     if os.path.isdir(org_file_path):
         print(f"Error: '{org_file_path}' es una carpeta, se esperaba un archivo.")
+        sys.exit(1)
+
+    if not os.path.isdir(cred_dir):
+        print(f"Error: La carpeta 'config' no existe en '{base_dir}'. Créala y agrega tu archivo client_secret*.json.")
+        sys.exit(1)
+    try:
+        find_secret_file(cred_dir)
+    except FileNotFoundError as e:
+        print(f"Error: {e}")
         sys.exit(1)
 
     post_title, post_content, post_labels = export_and_read_files(org_file_path)
