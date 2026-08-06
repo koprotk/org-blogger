@@ -5,5 +5,3 @@
 /myblog/__pycache__/
 /pyrightconfig.json
 *.DS_Store
-drafts/*.org
-posts/*.org
