@@ -24,13 +24,15 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 uv sync
 #+end_src
 
+#+RESULTS:
+
 * How to use it
 1. Write your post on an org file in the ~drafts~ folder.
 2. Put your Google credential file (a ~json~ file provided by Google) in the ~config~ folder (create it if it doesn't exist). The file is usually named ~client_secret_<id>.apps.googleusercontent.com.json~; any ~client_secret*.json~ name is accepted.
 3. When you're ready to publish, run:
 
 #+begin_src shell
-publish-blog myDraftOrgfile.org
+uv run publish-blog myDraftOrgfile.org
 #+end_src
 
 That's it! Your post will be published to Blogger.
