@@ -1,9 +1,9 @@
 [project]
-name = "myblog"
+name = "org-blogger"
 version = "0.1.0"
-description = "Project that allow to post it on your blog blogger from org files."
+description = "Publish Org mode documents to Blogger."
 authors = [
-    {name = "Daniel Muñoz",email = "demunoz2@uc.cl"}
+    {name = "Daniel Muñoz", email = "demunoz2@uc.cl"}
 ]
 readme = {file = "README.org", content-type = "text/plain"}
 requires-python = ">=3.11"
@@ -14,13 +14,13 @@ dependencies = [
     "packaging (>=25.0,<26.0)"
 ]
 
+[project.scripts]
+org-blogger = "org_blogger.cli:main"
+publish-blog = "org_blogger.cli:main"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["myblog"]
-
-[project.scripts]
-publish-blog = "myblog.main:main"
+packages = ["src/org_blogger"]

@@ -1,58 +1,123 @@
 #+AUTHOR: Daniel Muñoz
-#+TITLE: myBlog README
+#+TITLE: org-blogger
 
-~MyBlog~ allows to create blog post as org files and then publish it on ~blogger~ executing a small script in ~python~. The title, and the tags are managed automatically by the script through the project metadata. The script is language-agnostic: it works with any post regardless of the language you write in (English, Spanish, etc.), since the content is exported to HTML by Emacs without further processing.
+~org-blogger~ publishes [[https://orgmode.org/][Org mode]] documents to
+[[https://www.blogger.com/][Blogger]]. It exports each Org file to HTML with Emacs, reads the
+title and tags from the document metadata, and creates the post through the
+Blogger API.
+
+It is language-agnostic: the content is exported by Emacs, so posts can be
+written in English, Spanish, or any other language.
 
 * Requirements
-+ Python >=3.11
-+ uv (https://docs.astral.sh/uv/getting-started/)
-+ Emacs (optional, for editing org files)
+
++ Python >= 3.11
++ [[https://docs.astral.sh/uv/][uv]] (recommended) or ~pipx~
++ Emacs with ~org-html-export-to-html~ available in batch mode
++ A Google Cloud project with the Blogger API enabled
 
 * Installation
 
-** Install uv
 #+begin_src shell
-curl -LsSf https://astral.sh/uv/install.sh | sh
+uv tool install git+https://github.com/koprotk/org-blogger.git
 #+end_src
 
-** Clone and setup the project
+Or install it from a local clone:
+
 #+begin_src shell
-git clone https://github.com/koprotk/myBlog.git
-cd myBlog
-uv venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+git clone https://github.com/koprotk/org-blogger.git
+cd org-blogger
 uv sync
+uv tool install .
 #+end_src
 
-#+RESULTS:
+* Google credentials
 
-* How to use it
-1. Write your post on an org file in the ~drafts~ folder.
-2. Put your Google credential file (a ~json~ file provided by Google) in the ~config~ folder (create it if it doesn't exist). The file is usually named ~client_secret_<id>.apps.googleusercontent.com.json~; any ~client_secret*.json~ name is accepted.
-3. When you're ready to publish, run:
+1. Create an OAuth client of type *Desktop app* in the
+   [[https://console.cloud.google.com/][Google Cloud Console]] and enable the Blogger API.
+2. Download the client secret JSON file. Its name starts with
+   ~client_secret~ and ends with ~.json~.
+3. Place it in a configuration directory:
+   - ~~/.config/org-blogger/~ (recommended, outside any repository), or
+   - ~./config/~ inside the directory where you run the command.
+
+The first run opens a browser to authorize the application and writes
+~token.json~ next to the client secret. Keep both files private and never
+commit them.
+
+The configuration directory can also be set with
+~ORG_BLOGGER_CONFIG_DIR~ or with ~--config-dir~.
+
+* Usage
+
+From the root of your blog repository:
 
 #+begin_src shell
-uv run publish-blog myDraftOrgfile.org
+org-blogger publish drafts/my-post.org
 #+end_src
 
-That's it! Your post will be published to Blogger.
+By default the command:
 
-* Tips and tricks
+1. resolves ~my-post.org~ inside ~./drafts~,
+2. exports it to HTML with Emacs,
+3. reads ~#+TITLE~ and ~#+TAGS~,
+4. publishes it to the first blog of the authenticated account,
+5. moves the Org file to ~./posts~.
+
+Useful options:
+
+#+begin_src shell
+org-blogger publish drafts/my-post.org \
+  --drafts-dir drafts \
+  --posts-dir posts \
+  --config-dir ~/.config/org-blogger \
+  --blog-id 1234567890 \
+  --draft
+#+end_src
+
++ ~--draft~ creates the post as a draft instead of publishing it immediately.
++ ~--blog-id~ skips the lookup of the first blog.
++ ~--config-dir~ overrides the credential directory.
++ ~--drafts-dir~ and ~--posts-dir~ make the tool usable from any layout.
+
+The old ~publish-blog my-post.org~ command still works as an alias of
+~org-blogger publish~.
+
+* Metadata
+
+#+begin_src org
+#+TITLE: My post title
+#+TAGS: emacs, org, blogger
+#+end_src
+
+Tags can be separated by commas or whitespace. If ~#+TAGS~ is absent, the post
+is published without labels.
+
 ** Front image
-If you want a front image for your post, link it as an image (must have an image extension) in this format: ~[[image url]]~ (without spaces). If you have a web link to an image that doesn't work directly, you can use a shortened URL or host it externally.
 
-** Tags
-The script extracts tags from your org file using ~#+TAGS: tag1 tag2 tag3~. If you don't use tags in your org file, the script will use the project name as a default tag.
+Link an image with an image extension in the body of the post:
 
-** Development
-To run the project in editable mode (for development):
+#+begin_src org
+[[https://example.com/image.png]]
+#+end_src
+
+* Development
+
 #+begin_src shell
+git clone https://github.com/koprotk/org-blogger.git
+cd org-blogger
 uv sync
-source .venv/bin/activate
-publish-blog myorgfile.org
+uv run python -m unittest discover -s tests -v
 #+end_src
 
-To deactivate the virtual environment:
+Run the CLI from the checkout with:
+
 #+begin_src shell
-deactivate
+uv run org-blogger publish /path/to/post.org --config-dir ~/.config/org-blogger
 #+end_src
+
+* Related repositories
+
+The posts themselves live in a separate repository:
+[[https://github.com/koprotk/myBlog][koprotk/myBlog]]. That repository contains only content and installs this tool
+as an external dependency.
