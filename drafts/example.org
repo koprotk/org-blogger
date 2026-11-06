@@ -1,0 +1,120 @@
+#+TITLE: From Org File to Blogger in One Command
+#+AUTHOR: Daniel Muñoz
+#+TAGS: emacs, org, blogger, tutorial
+#+OPTIONS: toc:nil
+
+#+begin_quote
+This post is also a template. Copy it into your ~drafts/~ directory, replace
+the title, tags, and body, and publish it with ~org-blogger~.
+#+end_quote
+
+[[https://www.gnu.org/software/emacs/images/emacs.png]]
+
+Every post on this blog starts as a plain text file. I write it in Org mode,
+add a title and a few tags, and publish it with a single command. No dashboards,
+no copy-pasting HTML, and no lock-in: the source stays readable in any editor,
+while Emacs takes care of producing the final HTML.
+
+This post is a complete example of that workflow. It uses the same metadata,
+formatting, code blocks, tables, and links that ~org-blogger~ supports, so you
+can use it as a starting point for your own articles.
+
+* Why write in Org mode?
+
+Org mode is a good fit for blogging because it stays out of the way:
+
+- The source is plain text, so it works with version control and any editor.
+- Headings, lists, tables, and source blocks are simple to type and easy to read.
+- Emacs exports the document to clean HTML without a separate templating step.
+- Metadata such as ~#+TITLE~ and ~#+TAGS~ can drive the publishing tool.
+
+The last point is what makes ~org-blogger~ possible. Instead of asking you to
+fill in a web form, it reads the document itself.
+
+* The metadata
+
+Every post needs a title and, optionally, a list of tags. They live at the top
+of the file:
+
+#+begin_example
+#+TITLE: From Org File to Blogger in One Command
+#+TAGS: emacs, org, blogger, tutorial
+#+end_example
+
+~org-blogger~ reads ~#+TITLE~ and uses it as the Blogger post title. Tags can be
+separated by commas or whitespace, and they become Blogger labels. If you omit
+~#+TAGS~, the post is published without labels.
+
+* Writing the body
+
+The body is ordinary Org mode. You can use *bold*, /italic/, ~inline code~,
+and [[https://orgmode.org/manual/][links]] exactly as you would in any other
+document. Headings become sections in the exported HTML, so the structure of
+the source is also the structure of the published article.
+
+A short quotation works well for emphasis:
+
+#+begin_quote
+Simplicity is prerequisite for reliability.
+-- Edsger W. Dijkstra
+#+end_quote
+
+Footnotes are supported too, which is handy for citations or side remarks.[fn:1]
+
+* Code and tables
+
+Technical posts usually need more than prose. Source blocks are exported with
+syntax highlighting:
+
+#+begin_src shell
+uv tool install "org-blogger @ git+https://github.com/koprotk/org-blogger.git@v0.1.0"
+cd ~/Projects/personal/myBlog
+org-blogger publish my-post.org
+#+end_src
+
+Tables are useful when you need to compare options:
+
+| Flag         | What it does                                      |
+|--------------+---------------------------------------------------|
+| ~--draft~    | Creates the post as a draft instead of publishing |
+| ~--blog-id~  | Uses a specific blog instead of looking it up     |
+| ~--drafts-dir~ | Changes where drafts are read from              |
+| ~--posts-dir~  | Changes where published Org files are moved     |
+
+* Publishing the post
+
+Once the file is ready, run the command from the root of the blog repository:
+
+#+begin_src shell
+org-blogger publish my-post.org
+#+end_src
+
+The tool exports the Org file to HTML with Emacs, reads the title and tags,
+creates the Blogger post, and moves the Org file from ~drafts/~ to ~posts~. If
+something goes wrong, the source file stays where it is, so you never have to
+recover a draft from the Blogger editor.
+
+The first run also asks you to authorize the application with Google. After
+that, the saved token is refreshed automatically, and publishing is as quick as
+editing the file.
+
+* A small checklist
+
+Before publishing, I usually check the following:
+
+1. The title is specific enough to be useful in a search result.
+2. The tags describe the topic, not the mood of the day.
+3. Code blocks render correctly and do not contain private information.
+4. Links and images point to stable URLs.
+5. The draft reads well without the surrounding blog context.
+
+* Final thoughts
+
+The best publishing workflow is the one you forget about while writing. For me,
+that means keeping everything in Org mode and letting a small script handle the
+rest. If you write on Blogger and already use Emacs, this setup is worth trying:
+the source remains yours, and the path from draft to published post is one
+command long.
+
+[fn:1] This footnote exists to show that footnotes survive the export. You can
+remove it in your own copy.

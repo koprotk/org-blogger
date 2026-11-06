@@ -64,6 +64,9 @@ By default the command:
 4. publishes it to the first blog of the authenticated account,
 5. moves the Org file to ~./posts~.
 
+A complete, copyable example post is included in
+[[file:drafts/example.org][drafts/example.org]].
+
 Useful options:
 
 #+begin_src shell
