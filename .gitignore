@@ -1,4 +1,6 @@
+# Google OAuth credentials and tokens (never commit)
 /config/
+/config/*.json
 /.venv/
 __pycache__/
 *.py[cod]
