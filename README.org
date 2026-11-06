@@ -118,9 +118,3 @@ Run the CLI from the checkout with:
 #+begin_src shell
 uv run org-blogger publish /path/to/post.org --config-dir ~/.config/org-blogger
 #+end_src
-
-* Related repositories
-
-The posts themselves live in a separate repository:
-[[https://github.com/koprotk/myBlog][koprotk/myBlog]]. That repository contains only content and installs this tool
-as an external dependency.
